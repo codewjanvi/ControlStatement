@@ -34,13 +34,16 @@ class DashboardHandler(BaseHTTPRequestHandler):
             super().log_message(format, *args)
 
     def _send_json(self, data: dict, status: int = 200) -> None:
-        payload = json.dumps(data).encode("utf-8")
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(payload)))
-        self.send_header("Cache-Control", "no-cache")
-        self.end_headers()
-        self.wfile.write(payload)
+        try:
+            payload = json.dumps(data).encode("utf-8")
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.send_header("Cache-Control", "no-cache")
+            self.end_headers()
+            self.wfile.write(payload)
+        except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
+            pass
 
     def _send_file(self, file_path: Path) -> None:
         if not file_path.is_file():
@@ -51,12 +54,15 @@ class DashboardHandler(BaseHTTPRequestHandler):
         if mime_type is None:
             mime_type = "application/octet-stream"
 
-        content = file_path.read_bytes()
-        self.send_response(200)
-        self.send_header("Content-Type", f"{mime_type}; charset=utf-8")
-        self.send_header("Content-Length", str(len(content)))
-        self.end_headers()
-        self.wfile.write(content)
+        try:
+            content = file_path.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", f"{mime_type}; charset=utf-8")
+            self.send_header("Content-Length", str(len(content)))
+            self.end_headers()
+            self.wfile.write(content)
+        except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
+            pass
 
     def do_GET(self) -> None:
         parsed_url = urlparse(self.path)
