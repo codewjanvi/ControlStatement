@@ -34,12 +34,10 @@ User uploads documents (PDF / CSV)
 
 ## 📊 Feature Status
 
-> *Note: In accordance with our engineering discipline, all unbuilt features are strictly marked as **Planned**.*
-
 | Feature | Status |
 | --- | --- |
-| Document ingestion (PDF, CSV) | **Planned** |
-| Transaction normalization & deduplication | **Planned** |
+| Document ingestion (PDF, CSV) | **Completed** |
+| Transaction normalization & deduplication | **In Progress** (Normalization complete, dedup in Phase 2) |
 | Statement verification (totals reconciliation) | **Planned** |
 | Local model integration (Ollama / llama.cpp) | **Planned** |
 | Spending categorization | **Planned** |
@@ -62,8 +60,8 @@ User uploads documents (PDF / CSV)
 
 | Format | Status | Details |
 | --- | --- | --- |
-| Bank Statement PDF | **Planned** | Native PDF text extraction for standard statement layouts |
-| Transaction CSV/TSV | **Planned** | Standard delimited export files from bank portals |
+| Bank Statement CSV / TSV | **Supported** | Automatic column detection for Date, Narration, Debit/Credit, Balance, Reference |
+| Bank Statement PDF | **Supported** | Native text-based PDF statement extraction via local `pypdf` |
 
 ---
 
@@ -80,19 +78,40 @@ User uploads documents (PDF / CSV)
 
 ---
 
-## 🛠️ Project Setup & Installation (Phase 0 Skeleton)
+## 🛠️ Installation & Usage
 
 ### Prerequisites
 
-- **Python:** 3.10+ (Detected: 3.14)
-- **Local Model Provider:** [Ollama](https://ollama.ai) running locally on port `11434` (or compatible local LLM server)
+- **Python:** 3.10+ (Verified with Python 3.14 on Windows)
+- **Dependencies:** Install dependencies via `pip install -r requirements.txt`
 
 ### Configuration
 
-Copy `.env.example` to `.env` and fill in your local preferences:
+Copy `.env.example` to `.env`:
 
 ```bash
 cp .env.example .env
 ```
 
 Ensure `.env` remains uncommitted to version control.
+
+### CLI Usage: Ingestion & Normalization (Phase 1)
+
+Parse any bank statement (PDF or CSV) into normalized transactions:
+
+```bash
+# Terminal table view
+python -m controlstatement parse fixtures/sample_statement.csv
+python -m controlstatement parse fixtures/sample_statement.pdf
+
+# Structured JSON output
+python -m controlstatement parse fixtures/sample_statement.csv --json
+```
+
+### Running Tests
+
+Execute the automated test suite:
+
+```bash
+python -m unittest discover -s tests -p "test_*.py"
+```

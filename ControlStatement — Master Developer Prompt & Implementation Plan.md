@@ -59,8 +59,8 @@ The pipeline is:
 
 | Feature | Status |
 | --- | --- |
-| Document ingestion (PDF, CSV) | Planned |
-| Transaction normalization & deduplication | Planned |
+| Document ingestion (PDF, CSV) | Completed |
+| Transaction normalization & deduplication | In Progress (Normalization complete) |
 | Statement verification (totals reconciliation) | Planned |
 | Local model integration (Ollama / llama.cpp) | Planned |
 | Spending categorization | Planned |
@@ -370,7 +370,9 @@ Tasks: demo script (`docs/demo.md`) using synthetic fixture data; README final p
 
 | Date | Decision | Verified how | Approved by |
 | --- | --- | --- | --- |
-| 2026-10-25 | Environment verified: Python 3.14.4 on Windows; Ollama running on localhost:11434 with model `gemma4:e2b` | Ran `python --version` and queried `http://localhost:11434/api/tags` | Pending user OK |
+| 2026-10-25 | Environment verified: Python 3.14.4 on Windows; Ollama running on localhost:11434 with model `gemma4:e2b` | Ran `python --version` and queried `http://localhost:11434/api/tags` | Approved by user ("okay continue") |
+| 2026-10-25 | Phase 1 architecture: Python 3.14 + pypdf for PDF extraction, CSV parser with multi-format column detection, ISO date normalization, signed decimal amounts, SHA-256 statement_id | Verified pypdf text extraction on minimal PDF | Approved by user |
+
 
 
 ## 7. Definition of Done (every change)

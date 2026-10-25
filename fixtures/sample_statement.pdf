@@ -1,0 +1,55 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 942 >>
+stream
+BT
+/F1 10 Tf
+14 TL
+40 760 Td
+(APEX COMMERCIAL BANK - ACCOUNT STATEMENT) ' 
+(Statement Period: 2026-06-01 to 2026-06-30) ' 
+(Account Holder: John Doe | Account No: XXXX-XXXX-4589) ' 
+(Currency: INR) ' 
+(Opening Balance: 12500.00) ' 
+(----------------------------------------------------------------------) ' 
+(Date Description Debit Credit Balance) ' 
+(2026-06-02 Salary Deposit TechCorp 80000.00 92500.00) ' 
+(2026-06-04 Rent Payment Landlord 22000.00 70500.00) ' 
+(2026-06-07 Swiggy Bangalore 650.00 69850.00) ' 
+(2026-06-10 Amazon Shopping 3499.00 66351.00) ' 
+(2026-06-14 Spotify Monthly 119.00 66232.00) ' 
+(2026-06-18 Zomato Food Delivery 840.00 65392.00) ' 
+(2026-06-22 Tata Power Electricity 2100.00 63292.00) ' 
+(2026-06-27 BigBasket Grocery Store 4200.00 59092.00) ' 
+(2026-06-29 Luxury Watch Gallery 25000.00 34092.00) ' 
+(----------------------------------------------------------------------) ' 
+(Closing Balance: 34092.00) ' 
+ET
+
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000001234 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1304
+%%EOF
