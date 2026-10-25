@@ -58,6 +58,12 @@ def main() -> None:
     parse_parser.add_argument("--json", action="store_true", help="Output raw JSON array of transactions")
     parse_parser.add_argument("--currency", default="INR", help="Default currency (default: INR)")
 
+    # verify subcommand
+    verify_parser = subparsers.add_parser("verify", help="Verify statement balance reconciliation and integrity")
+    verify_parser.add_argument("file", help="Path to the statement file to verify")
+    verify_parser.add_argument("--json", action="store_true", help="Output raw JSON verification report")
+    verify_parser.add_argument("--currency", default="INR", help="Default currency (default: INR)")
+
     args = parser.parse_args()
 
     if args.command == "parse":
@@ -82,6 +88,50 @@ def main() -> None:
                 print(f"Opening Balance: {summary.opening_balance} | Closing Balance: {summary.closing_balance}")
             print()
             print_table(transactions)
+
+    elif args.command == "verify":
+        from controlstatement.verifier import verify_statement
+
+        file_path = Path(args.file)
+        if not file_path.exists():
+            print(f"Error: File not found: {file_path}", file=sys.stderr)
+            sys.exit(1)
+
+        try:
+            transactions, summary = parse_document(file_path, currency=args.currency)
+            report = verify_statement(transactions, summary)
+        except Exception as e:
+            print(f"Error during verification: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        if args.json:
+            print(json.dumps(report.to_dict(), indent=2))
+        else:
+            status_symbol = {
+                "PASS": "[PASS] - Statement integrity verified",
+                "WARN": "[WARN] - Needs review",
+                "FAIL": "[FAIL] - Integrity check failed",
+            }.get(report.status.value, report.status.value)
+
+            print(f"\nVerification Status: {status_symbol}")
+            print(f"Document: {report.source_file}")
+            print(f"Statement ID: {report.statement_id[:16]}...")
+            print("-" * 60)
+            if report.reconciliation_checked:
+                print(f"Opening Balance:   {report.opening_balance:.2f}")
+                print(f"Closing Balance:   {report.closing_balance:.2f}")
+                print(f"Computed Closing:  {report.computed_closing:.2f}")
+                print(f"Difference:        {report.reconciliation_difference:.2f}")
+            print(f"Running Balance Sequence: {'PASSED' if report.running_balance_passed else 'FAILED'}")
+            print(f"Duplicate Transactions:   {report.duplicate_count}")
+            print("-" * 60)
+            print("Diagnostics:")
+            for reason in report.reasons:
+                print(f"  * {reason}")
+            print()
+
+        if report.status.value == "FAIL":
+            sys.exit(2)
     else:
         parser.print_help()
 

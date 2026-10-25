@@ -37,8 +37,8 @@ User uploads documents (PDF / CSV)
 | Feature | Status |
 | --- | --- |
 | Document ingestion (PDF, CSV) | **Completed** |
-| Transaction normalization & deduplication | **In Progress** (Normalization complete, dedup in Phase 2) |
-| Statement verification (totals reconciliation) | **Planned** |
+| Transaction normalization & deduplication | **Completed** |
+| Statement verification (totals reconciliation) | **Completed** |
 | Local model integration (Ollama / llama.cpp) | **Planned** |
 | Spending categorization | **Planned** |
 | Plain-language monthly summary | **Planned** |
@@ -95,8 +95,9 @@ cp .env.example .env
 
 Ensure `.env` remains uncommitted to version control.
 
-### CLI Usage: Ingestion & Normalization (Phase 1)
+### CLI Usage
 
+#### 1. Ingestion & Normalization
 Parse any bank statement (PDF or CSV) into normalized transactions:
 
 ```bash
@@ -106,6 +107,21 @@ python -m controlstatement parse fixtures/sample_statement.pdf
 
 # Structured JSON output
 python -m controlstatement parse fixtures/sample_statement.csv --json
+```
+
+#### 2. Verification & Reconciliation (Phase 2)
+Verify document integrity, reconcile opening/closing balances, and check running balances:
+
+```bash
+# Terminal status report (PASS / WARN / FAIL)
+python -m controlstatement verify fixtures/sample_statement.csv
+python -m controlstatement verify fixtures/sample_statement.pdf
+
+# Verify tampered statement (exits with code 2 on FAIL)
+python -m controlstatement verify fixtures/tampered_statement.csv
+
+# JSON verification report
+python -m controlstatement verify fixtures/sample_statement.csv --json
 ```
 
 ### Running Tests

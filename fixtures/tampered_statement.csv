@@ -1,0 +1,12 @@
+Date,Description,ReferenceNo,Debit,Credit,Balance
+2026-06-01,Opening Balance,,,10000.00,10000.00
+2026-06-02,Salary Credit - Corp Inc,TXN10001,,75000.00,85000.00
+2026-06-03,House Rent Transfer,TXN10002,25000.00,,60000.00
+2026-06-05,Swiggy Order #8821,TXN10003,450.00,,59550.00
+2026-06-08,Netflix Subscription,TXN10004,649.00,,58901.00
+2026-06-12,Electricity Utility Bill,TXN10005,1850.00,,57051.00
+2026-06-15,Swiggy Order #8934,TXN10006,520.00,,56531.00
+2026-06-20,Zomato Dining Out,TXN10007,1450.00,,55081.00
+2026-06-25,Reliance Fresh Groceries,TXN10008,3200.00,,51881.00
+2026-06-28,Unusual Electronics MegaStore,TXN10009,15000.00,,36881.00
+2026-06-30,Closing Balance,,,99999.00,99999.00

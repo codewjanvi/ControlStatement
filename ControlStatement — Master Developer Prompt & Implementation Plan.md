@@ -60,8 +60,8 @@ The pipeline is:
 | Feature | Status |
 | --- | --- |
 | Document ingestion (PDF, CSV) | Completed |
-| Transaction normalization & deduplication | In Progress (Normalization complete) |
-| Statement verification (totals reconciliation) | Planned |
+| Transaction normalization & deduplication | Completed |
+| Statement verification (totals reconciliation) | Completed |
 | Local model integration (Ollama / llama.cpp) | Planned |
 | Spending categorization | Planned |
 | Plain-language monthly summary | Planned |
@@ -372,6 +372,8 @@ Tasks: demo script (`docs/demo.md`) using synthetic fixture data; README final p
 | --- | --- | --- | --- |
 | 2026-10-25 | Environment verified: Python 3.14.4 on Windows; Ollama running on localhost:11434 with model `gemma4:e2b` | Ran `python --version` and queried `http://localhost:11434/api/tags` | Approved by user ("okay continue") |
 | 2026-10-25 | Phase 1 architecture: Python 3.14 + pypdf for PDF extraction, CSV parser with multi-format column detection, ISO date normalization, signed decimal amounts, SHA-256 statement_id | Verified pypdf text extraction on minimal PDF | Approved by user |
+| 2026-10-25 | Phase 2 verifier: balance reconciliation, running balance sequence consistency, intra/cross-statement deduplication, PASS/WARN/FAIL reporting | Verified against valid CSV, valid PDF, and tampered CSV fixtures | Approved by user |
+
 
 
 
