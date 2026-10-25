@@ -1,1 +1,4 @@
+# ControlStatement runtime dependencies
+# All other modules used (csv, json, pathlib, statistics, dataclasses,
+# http.server, socketserver, urllib, re, io) are Python standard library.
 pypdf>=6.0.0
