@@ -55,6 +55,12 @@ def answer_question(
         "model": cfg.local_model_name,
         "prompt": prompt,
         "stream": False,
+        "think": False,
+        "options": {
+            "num_predict": 120,
+            "temperature": 0.1,
+            "top_p": 0.85,
+        },
     }
 
     try:

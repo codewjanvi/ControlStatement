@@ -192,10 +192,8 @@ def main() -> None:
         from controlstatement.config import get_config
 
         cfg = get_config()
-        # If --no-model is passed, skip. If --model is passed, run. If neither, auto-run if model is running.
-        should_run_model = args.model or (not args.no_model and is_local_model_available(cfg))
-        if args.no_model:
-            should_run_model = False
+        # Instant reporting by default; trigger AI summary when --model is requested
+        should_run_model = args.model and not args.no_model
 
         if should_run_model:
             if not args.json:

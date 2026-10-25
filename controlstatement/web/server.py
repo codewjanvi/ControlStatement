@@ -3,7 +3,7 @@
 import json
 import mimetypes
 import os
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import HTTPServer, BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Optional
 from urllib.parse import urlparse, parse_qs
@@ -26,6 +26,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
     config: AppConfig = get_config()
     cached_transactions = {}
+    cached_analysis = {}
 
     def log_message(self, format, *args):
         # Override to prevent logging of sensitive query params or details
@@ -96,10 +97,10 @@ class DashboardHandler(BaseHTTPRequestHandler):
             try:
                 data = json.loads(raw_body.decode("utf-8")) if raw_body else {}
                 file_target = data.get("file_path")
-                skip_model = data.get("skip_model", False)
+                # Fast response mode: default skip_model=True unless explicitly requested
+                skip_model = data.get("skip_model", True)
 
                 if not file_target:
-                    # Default to sample fixture if not provided
                     default_fixture = Path(__file__).parent.parent.parent / "fixtures" / "sample_statement.csv"
                     file_target = str(default_fixture)
 
@@ -113,7 +114,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 analysis = analyze_transactions(transactions)
 
                 model_summary = ""
-                if not skip_model and is_local_model_available(self.config, timeout=1.0):
+                if not skip_model and is_local_model_available(self.config, timeout=0.5):
                     model_summary = generate_ai_summary(analysis, transactions, config=self.config)
 
                 # Phase 7: tax tagging and budget
@@ -126,17 +127,42 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 report = build_full_report_dict(analysis, verification, transactions, model_summary=model_summary)
                 report["tax_tagged"] = [t.to_dict() for t in tagged]
                 report["budget"] = budget_report.to_dict()
-                # Cache transactions in memory for quick Q&A
+                # Cache transactions and analysis in memory for instantaneous Q&A and AI summary
                 DashboardHandler.cached_transactions[target_path.name] = transactions
+                DashboardHandler.cached_analysis[target_path.name] = (analysis, transactions)
 
                 self._send_json(report)
             except Exception as e:
                 self._send_json({"error": str(e)}, status=500)
 
+        elif path == "/api/ai-summary":
+            # Asynchronous dedicated endpoint for AI insights
+            try:
+                data = json.loads(raw_body.decode("utf-8")) if raw_body else {}
+                doc_name = data.get("doc_name", "")
+                cached = DashboardHandler.cached_analysis.get(doc_name)
+                if cached:
+                    analysis, transactions = cached
+                else:
+                    file_path = data.get("file_path")
+                    target = Path(file_path) if file_path else (Path(__file__).parent.parent.parent / "fixtures" / "sample_statement.csv")
+                    transactions, _ = parse_document(target, currency=self.config.default_currency)
+                    analysis = analyze_transactions(transactions)
+                    DashboardHandler.cached_analysis[doc_name or target.name] = (analysis, transactions)
+                    DashboardHandler.cached_transactions[doc_name or target.name] = transactions
+
+                if is_local_model_available(self.config, timeout=0.5):
+                    model_summary = generate_ai_summary(analysis, transactions, config=self.config)
+                else:
+                    model_summary = "[Notice: Local AI model is offline. Rule-based financial analysis remains active.]"
+
+                self._send_json({"model_summary": model_summary})
+            except Exception as e:
+                self._send_json({"error": str(e)}, status=500)
+
         elif path == "/api/upload":
-            # Handle direct file upload in memory/temp directory
+            # Handle direct file upload in memory/temp directory with instant response
             filename = self.headers.get("X-Filename", "uploaded_statement.csv")
-            # Sanitize filename
             safe_name = Path(filename).name
             upload_dir = Path(__file__).parent.parent.parent / "data" / "uploads"
             upload_dir.mkdir(parents=True, exist_ok=True)
@@ -148,19 +174,17 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 transactions, summary = parse_document(saved_path, currency=self.config.default_currency)
                 verification = verify_statement(transactions, summary)
                 analysis = analyze_transactions(transactions)
-                model_summary = ""
-                if is_local_model_available(self.config, timeout=1.0):
-                    model_summary = generate_ai_summary(analysis, transactions, config=self.config)
-                report = build_full_report_dict(analysis, verification, transactions, model_summary=model_summary)
-                # Phase 7: tax tagging and budget
+
                 tagged = tag_tax_transactions(transactions)
                 budget_report = compare_budget_vs_actuals(
                     analysis.categories,
                     currency=self.config.default_currency,
                 )
+                report = build_full_report_dict(analysis, verification, transactions, model_summary="")
                 report["tax_tagged"] = [t.to_dict() for t in tagged]
                 report["budget"] = budget_report.to_dict()
                 DashboardHandler.cached_transactions[safe_name] = transactions
+                DashboardHandler.cached_analysis[safe_name] = (analysis, transactions)
                 self._send_json(report)
             except Exception as e:
                 self._send_json({"error": f"Failed to parse uploaded document: {e}"}, status=500)
@@ -226,7 +250,7 @@ def run_server(
         raise ValueError(f"Privacy error: Web dashboard must only bind to localhost, got {host}")
 
     DashboardHandler.config = cfg
-    server = HTTPServer((host, port), DashboardHandler)
+    server = ThreadingHTTPServer((host, port), DashboardHandler)
     url = f"http://{host}:{port}"
     print(f"\n==============================================================")
     print(f" CONTROLSTATEMENT PRIVATE LOCAL DASHBOARD")

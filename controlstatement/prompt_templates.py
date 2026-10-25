@@ -50,9 +50,9 @@ UNUSUAL & ANOMALOUS CHARGES:
 {chr(10).join(anomaly_lines) if anomaly_lines else 'None flagged'}
 
 INSTRUCTIONS:
-1. Provide a concise, plain-language monthly summary (2-3 sentences) describing the overall cash flow and financial health.
-2. Highlight spending observations and category distribution.
-3. Provide 2-3 specific, actionable nudges or saving suggestions based strictly on the data above.
-4. Keep the tone helpful, objective, and privacy-respecting. Do NOT hallucinate data not listed above. Do not refer to yourself as a large language model.
+1. Provide a direct, concise monthly summary (1-2 sentences) of cash flow and savings health.
+2. Highlight the primary spending driver (1 sentence).
+3. Provide 2 concise, actionable saving nudges (bullet points).
+4. Keep the tone helpful, objective, and privacy-respecting. Do NOT hallucinate data. Respond directly under 100 words without introductory filler.
 """
     return prompt.strip()

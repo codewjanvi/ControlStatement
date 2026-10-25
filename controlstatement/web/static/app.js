@@ -89,23 +89,52 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ── 3. Analyze ───────────────────────────────────────────────
-  async function analyzeStatement(filePath, skipModel = false) {
+  // ── 3. Analyze (Instant Rule-Based + Background AI) ──────────
+  async function analyzeStatement(filePath) {
     if (!filePath) return;
     setAnalyzing(true);
     try {
       const data = await apiFetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ file_path: filePath, skip_model: skipModel }),
+        body: JSON.stringify({ file_path: filePath, skip_model: true }),
       });
       if (data.error) { showError("Analysis error: " + data.error); return; }
       currentReport = data;
       currentDoc = (data.verification?.source_file) || currentDoc;
       renderDashboard(data);
+      // Trigger background AI summary asynchronously without blocking UI
+      fetchAiSummary(currentDoc, filePath);
     } catch (e) {
       showError("Failed to analyze: " + e.message);
     } finally {
       setAnalyzing(false);
+    }
+  }
+
+  async function fetchAiSummary(docName, filePath = "") {
+    aiSummaryText.innerHTML = `
+      <div class="ai-loading-wrap">
+        <div class="ai-loading-pill">
+          <span class="spin">⚡</span> Analyzing on-device insights with Gemma 4…
+        </div>
+        <div class="shimmer-line"></div>
+        <div class="shimmer-line short"></div>
+      </div>
+    `;
+    try {
+      const data = await apiFetch("/api/ai-summary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ doc_name: docName, file_path: filePath }),
+      });
+      if (data.model_summary && data.model_summary.trim()) {
+        aiSummaryText.innerHTML = data.model_summary.replace(/\n/g, "<br>");
+      } else {
+        aiSummaryText.innerHTML = "Rule-based analysis complete. <span style='color:var(--text-dim)'>Local AI model is offline.</span>";
+      }
+    } catch (e) {
+      aiSummaryText.innerHTML = "Rule-based analysis complete. <span style='color:var(--text-dim)'>Local AI insights unavailable.</span>";
     }
   }
 
@@ -487,6 +516,8 @@ document.addEventListener("DOMContentLoaded", () => {
       currentReport = data;
       currentDoc = file.name;
       renderDashboard(data);
+      // Asynchronously fetch AI summary in background
+      fetchAiSummary(currentDoc);
     } catch (e) {
       showError("File ingestion failed: " + e.message);
     } finally {
@@ -535,9 +566,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (v) analyzeStatement(v);
   });
   btnRefreshAi.addEventListener("click", () => {
-    const v = selectFixture.value;
-    if (v) analyzeStatement(v, false);
-    else if (currentReport) renderDashboard(currentReport);
+    fetchAiSummary(currentDoc, selectFixture.value);
   });
 
   // Re-render chart on resize

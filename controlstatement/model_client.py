@@ -11,11 +11,22 @@ from controlstatement.rules import RuleAnalysisReport
 from controlstatement.prompt_templates import build_analysis_prompt
 
 
-def is_local_model_available(config: Optional[AppConfig] = None, timeout: float = 2.0) -> bool:
-    """Check if the local Ollama / LLM endpoint is active on localhost."""
+def is_local_model_available(config: Optional[AppConfig] = None, timeout: float = 1.0) -> bool:
+    """Check if the local Ollama / LLM endpoint is active on localhost with fast pre-check."""
     cfg = config or get_config()
-    tags_url = f"{cfg.local_model_endpoint.rstrip('/')}/api/tags"
+    try:
+        from urllib.parse import urlparse
+        import socket
+        parsed = urlparse(cfg.local_model_endpoint)
+        host = parsed.hostname or "127.0.0.1"
+        port = parsed.port or 11434
+        # Fast socket probe (< 0.2s) before making HTTP request
+        with socket.create_connection((host, port), timeout=0.25):
+            pass
+    except Exception:
+        return False
 
+    tags_url = f"{cfg.local_model_endpoint.rstrip('/')}/api/tags"
     try:
         req = urllib.request.Request(tags_url, headers={"User-Agent": "ControlStatement/0.1"})
         with urllib.request.urlopen(req, timeout=timeout) as resp:
@@ -31,7 +42,7 @@ def generate_ai_summary(
 ) -> str:
     """Invoke local LLM to generate plain-language summary, trends, and nudges.
 
-    Gracefully degrades if endpoint is offline or unavailable.
+    Optimized for low-latency local inference with bounded token output and disabled thinking.
     """
     cfg = config or get_config()
     generate_url = f"{cfg.local_model_endpoint.rstrip('/')}/api/generate"
@@ -41,6 +52,12 @@ def generate_ai_summary(
         "model": cfg.local_model_name,
         "prompt": prompt,
         "stream": False,
+        "think": False,
+        "options": {
+            "num_predict": 150,
+            "temperature": 0.2,
+            "top_p": 0.85,
+        },
     }
 
     try:

@@ -117,6 +117,22 @@ class TestWebServer(unittest.TestCase):
             data = json.loads(resp.read().decode("utf-8"))
             self.assertIn("answer", data)
 
+    @unittest.mock.patch("controlstatement.web.server.generate_ai_summary", return_value="Fast AI test summary.")
+    @unittest.mock.patch("controlstatement.web.server.is_local_model_available", return_value=True)
+    def test_api_ai_summary(self, _mock_avail, _mock_gen):
+        sample_path = Path(__file__).parent.parent / "fixtures" / "sample_statement.csv"
+        payload = json.dumps({"doc_name": "sample_statement.csv", "file_path": str(sample_path)}).encode("utf-8")
+        req = urllib.request.Request(
+            f"{self.base_url}/api/ai-summary",
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=5.0) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertEqual(data.get("model_summary"), "Fast AI test summary.")
+
 
 if __name__ == "__main__":
     unittest.main()
