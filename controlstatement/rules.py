@@ -98,6 +98,16 @@ class CashFlowSummary:
 
 
 @dataclass
+class MonthlyTrend:
+    """Month-over-month spending per category for trend charting."""
+    month: str  # YYYY-MM
+    category_totals: Dict[str, float]  # category -> total debit amount
+    net_savings: float
+    total_outflow: float
+    total_inflow: float
+
+
+@dataclass
 class RuleAnalysisReport:
     cash_flow: CashFlowSummary
     categories: List[CategorySummary]
@@ -106,6 +116,7 @@ class RuleAnalysisReport:
     total_transactions: int
     period_start: Optional[str] = None
     period_end: Optional[str] = None
+    monthly_trends: List[MonthlyTrend] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -116,6 +127,16 @@ class RuleAnalysisReport:
             "total_transactions": self.total_transactions,
             "period_start": self.period_start,
             "period_end": self.period_end,
+            "monthly_trends": [
+                {
+                    "month": t.month,
+                    "category_totals": t.category_totals,
+                    "net_savings": t.net_savings,
+                    "total_outflow": t.total_outflow,
+                    "total_inflow": t.total_inflow,
+                }
+                for t in self.monthly_trends
+            ],
         }
 
 
@@ -265,6 +286,44 @@ def detect_anomalies(transactions: List[Transaction]) -> List[AnomalyItem]:
     return anomalies
 
 
+def compute_monthly_trends(transactions: List[Transaction]) -> List[MonthlyTrend]:
+    """Compute month-over-month spending and income per category for trend chart."""
+    monthly_cat: Dict[str, Dict[str, float]] = defaultdict(lambda: defaultdict(float))
+    monthly_inflow: Dict[str, float] = defaultdict(float)
+
+    for txn in transactions:
+        # Extract YYYY-MM from date (handles YYYY-MM-DD and DD-MM-YYYY)
+        date_str = txn.date or ""
+        parts = date_str.replace("/", "-").split("-")
+        if len(parts) == 3:
+            if len(parts[0]) == 4:
+                month_key = f"{parts[0]}-{parts[1]}"
+            else:
+                month_key = f"{parts[2]}-{parts[1]}"
+        else:
+            continue
+
+        if txn.amount < 0:
+            monthly_cat[month_key][txn.category] += abs(txn.amount)
+        else:
+            monthly_inflow[month_key] += txn.amount
+
+    trends = []
+    for month in sorted(monthly_cat.keys()):
+        outflow = sum(monthly_cat[month].values())
+        inflow = monthly_inflow.get(month, 0.0)
+        trends.append(MonthlyTrend(
+            month=month,
+            category_totals={k: round(v, 2) for k, v in sorted(
+                monthly_cat[month].items(), key=lambda x: x[1], reverse=True
+            )},
+            net_savings=round(inflow - outflow, 2),
+            total_outflow=round(outflow, 2),
+            total_inflow=round(inflow, 2),
+        ))
+    return trends
+
+
 def analyze_transactions(
     transactions: List[Transaction],
     custom_rules: Optional[Dict[str, List[str]]] = None,
@@ -277,6 +336,7 @@ def analyze_transactions(
             recurring=[],
             anomalies=[],
             total_transactions=0,
+            monthly_trends=[],
         )
 
     # 1. Assign categories
@@ -317,6 +377,9 @@ def analyze_transactions(
     currency = transactions[0].currency if transactions else "INR"
     sorted_txns = sorted(transactions, key=lambda x: x.date)
 
+    # 5. Monthly trends (for web UI charts)
+    monthly_trends = compute_monthly_trends(transactions)
+
     return RuleAnalysisReport(
         cash_flow=CashFlowSummary(
             total_inflow=round(total_inflow, 2),
@@ -331,4 +394,5 @@ def analyze_transactions(
         total_transactions=len(transactions),
         period_start=sorted_txns[0].date if sorted_txns else None,
         period_end=sorted_txns[-1].date if sorted_txns else None,
+        monthly_trends=monthly_trends,
     )

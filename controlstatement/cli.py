@@ -83,6 +83,11 @@ def main() -> None:
     ask_parser.add_argument("question", help="Question about your spending (e.g. 'How much did I spend on dining?')")
     ask_parser.add_argument("--file", "-f", required=True, help="Path to statement file to query")
     ask_parser.add_argument("--currency", default="INR", help="Default currency (default: INR)")
+    # serve subcommand
+    serve_parser = subparsers.add_parser("serve", help="Launch the local private web UI dashboard")
+    serve_parser.add_argument("--host", default="127.0.0.1", help="Host interface to bind (default: 127.0.0.1 strictly)")
+    serve_parser.add_argument("--port", type=int, default=8080, help="Local port (default: 8080)")
+    serve_parser.add_argument("--open", action="store_true", default=False, help="Automatically open dashboard in browser")
 
     args = parser.parse_args()
 
@@ -224,6 +229,13 @@ def main() -> None:
         print("Answer:")
         print(response)
         print()
+
+    elif args.command == "serve":
+        from controlstatement.web.server import run_server
+        from controlstatement.config import get_config
+
+        cfg = get_config()
+        run_server(host=args.host, port=args.port, open_browser=args.open, config=cfg)
     else:
         parser.print_help()
 

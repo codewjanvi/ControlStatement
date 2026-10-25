@@ -44,13 +44,13 @@ User uploads documents (PDF / CSV)
 | Plain-language monthly summary | **Completed** |
 | Cash flow view (income vs. outflow) | **Completed** |
 | Anomaly & duplicate detection | **Completed** |
-| Trend analysis (MoM, rolling windows) | **Planned** |
+| Trend analysis (MoM, rolling windows) | **Completed** |
 | Recurring charge / subscription tracker | **Completed** |
 | Budget vs. actuals comparison | **Planned** |
 | Natural-language Q&A over transactions | **Completed** |
 | Tax-relevant transaction tagging | **Planned** |
 | Terminal report + JSON output | **Completed** |
-| Local web UI dashboard | **Planned** |
+| Local web UI dashboard | **Completed** |
 | Multi-account / multi-bank support | **Planned (post-MVP)** |
 | Export to CSV / PDF report | **Planned (post-MVP)** |
 
@@ -151,6 +151,25 @@ python -m controlstatement ask "How much did I spend on Swiggy in total?" --file
 python -m controlstatement ask "What was my highest expense?" --file fixtures/sample_statement.pdf
 python -m controlstatement ask "How much went to utilities and bills?" --file fixtures/sample_statement.csv
 ```
+
+#### 5. Local Web Dashboard (Phase 6)
+Launch the offline-capable browser dashboard — all charts and data served strictly from localhost:
+
+```bash
+# Open dashboard at http://127.0.0.1:8080 (auto-opens browser)
+python -m controlstatement serve --open
+
+# Custom port (still enforces localhost-only binding)
+python -m controlstatement serve --port 9090
+```
+
+The dashboard provides:
+- 📊 **Month-over-month trend chart** (Canvas, no CDN)
+- 🗂 **Category breakdown** with animated progress bars
+- 📒 **Normalized transactions ledger**
+- 🔄 **Recurring subscriptions** panel
+- ⚠️ **Anomaly flags** panel
+- 💬 **On-device Q&A** (strict guardrails, no cloud)
 
 ### Running Tests
 
