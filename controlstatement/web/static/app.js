@@ -32,6 +32,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const txnCountLabel    = document.getElementById("txn-count-label");
   const recurringWrap    = document.getElementById("recurring-container");
   const anomaliesWrap    = document.getElementById("anomalies-container");
+  const budgetWrap       = document.getElementById("budget-container");
+  const taxWrap          = document.getElementById("tax-container");
+  const btnTaxExport     = document.getElementById("btn-tax-export");
 
   const trendCanvas      = document.getElementById("trend-canvas");
   const trendPlaceholder = document.getElementById("trend-placeholder");
@@ -146,6 +149,8 @@ document.addEventListener("DOMContentLoaded", () => {
     renderRecurring(report.recurring || [], curr);
     renderAnomalies(report.anomalies || [], curr);
     renderTransactions(report.transactions || [], curr);
+    renderBudget(report.budget, curr);
+    renderTax(report.tax_tagged || [], curr);
 
     // Trend Chart
     if (report.monthly_trends && report.monthly_trends.length > 0) {
@@ -376,7 +381,89 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.closePath();
   }
 
-  // ── 10. File Upload / Drag & Drop ────────────────────────────
+  // ── 10. Budget vs Actuals ────────────────────────────────────
+  function renderBudget(budget, curr) {
+    budgetWrap.innerHTML = "";
+    if (!budget || !budget.budget_lines || !budget.budget_lines.length) {
+      budgetWrap.innerHTML = `<p class="dim-text">No budget data available.</p>`;
+      return;
+    }
+    const lines = budget.budget_lines;
+    lines.forEach((b, i) => {
+      const statusClass = b.status === "OK" ? "budget-ok" : b.status === "WARN" ? "budget-warn" : "budget-over";
+      const tagClass = b.status === "OK" ? "status-ok" : b.status === "WARN" ? "status-warn" : "status-over";
+      const usedPct = Math.min(b.variance_pct, 100);
+      const item = document.createElement("div");
+      item.className = `budget-item ${statusClass}`;
+      const budStr = b.budgeted > 0 ? `${Number(b.budgeted).toLocaleString()} ${curr}` : "No budget";
+      const varStr = `${b.variance >= 0 ? "+" : ""}${Number(b.variance).toLocaleString()}`;
+      item.innerHTML = `
+        <div class="budget-info">
+          <span class="budget-cat">${b.category}</span>
+          <span class="budget-meta">
+            <span class="budget-status-tag ${tagClass}">${b.status}</span>
+            ${Number(b.actual).toLocaleString()} / ${budStr}
+            <span style="margin-left:4px;color:${b.variance>=0?'var(--emerald)':'var(--rose)'}">(${varStr})</span>
+          </span>
+        </div>
+        <div class="budget-bar-bg">
+          <div class="budget-bar-fill" style="width:0%"></div>
+        </div>
+      `;
+      budgetWrap.appendChild(item);
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          item.querySelector(".budget-bar-fill").style.width = `${usedPct}%`;
+        }, 60 + i * 50);
+      });
+    });
+  }
+
+  // ── 11. Tax Panel ─────────────────────────────────────────────
+  function renderTax(tagged, curr) {
+    taxWrap.innerHTML = "";
+    if (!tagged || !tagged.length) {
+      taxWrap.innerHTML = `<p class="dim-text">No tax-relevant transactions found.</p>`;
+      return;
+    }
+    tagged.forEach(t => {
+      const div = document.createElement("div");
+      div.className = "tax-item";
+      div.innerHTML = `
+        <div class="tax-info">
+          <div class="tax-desc" title="${t.description}">[${t.date}] ${t.description}</div>
+          <div class="tax-cat">${t.tax_category}</div>
+        </div>
+        <div class="tax-amount">${Number(t.amount).toLocaleString()} ${curr}</div>
+      `;
+      taxWrap.appendChild(div);
+    });
+  }
+
+  // ── 12. Tax CSV Export ────────────────────────────────────────
+  if (btnTaxExport) {
+    btnTaxExport.addEventListener("click", async () => {
+      try {
+        const resp = await fetch("/api/tax-export", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ doc_name: currentDoc }),
+        });
+        if (!resp.ok) { alert("Tax export failed."); return; }
+        const blob = await resp.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "tax_tagged_transactions.csv";
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        alert("Tax export error: " + e.message);
+      }
+    });
+  }
+
+  // ── 13. File Upload / Drag & Drop ────────────────────────────
   dropzone.addEventListener("click", () => fileInput.click());
   dropzone.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") fileInput.click(); });
   fileInput.addEventListener("change", e => { if (e.target.files[0]) uploadFile(e.target.files[0]); });

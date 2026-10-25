@@ -378,6 +378,7 @@ Tasks: demo script (`docs/demo.md`) using synthetic fixture data; README final p
 | 2026-10-25 | Phase 4 local model integration: AppConfig with localhost privacy enforcement, versioned structured prompt template v1.0, Ollama client with graceful degradation, `--model` and `--no-model` flags | Verified end-to-end against sample CSV producing AI summary, spending commentary, and nudges; 25 unit tests passing | Approved by user |
 | 2026-10-25 | Phase 5 natural-language Q&A: guardrailed transaction context prompting, exact citation without hallucination, CLI `ask` subcommand | Tested against sample statement querying Swiggy spend (returned exact 970.00 INR and 2 cited transactions); 29 unit tests passing | Approved by user |
 | 2026-10-25 | Phase 6 local web dashboard: ThreadingHTTPServer on localhost-only, Canvas trend chart (stacked bar + net-savings dots, zero CDN), animated category bars, Q&A panel, monthly_trends API field, 36 unit tests passing | All 7 web tests pass in ~2s with mocked LLM | Approved by user (continuing) |
+| 2026-10-25 | Phase 7 nice-to-haves: tax_tagger.py (keyword-based, 8 tax categories, CSV export), budget.py (per-category OVER/WARN/OK, animated progress bars in web UI), CLI `tax` and `budget` subcommands, /api/tax-export endpoint | 57 unit tests passing in 2s | Approved by user (continuing) |
 
 
 

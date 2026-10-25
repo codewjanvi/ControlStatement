@@ -46,9 +46,9 @@ User uploads documents (PDF / CSV)
 | Anomaly & duplicate detection | **Completed** |
 | Trend analysis (MoM, rolling windows) | **Completed** |
 | Recurring charge / subscription tracker | **Completed** |
-| Budget vs. actuals comparison | **Planned** |
+| Budget vs. actuals comparison | **Completed** |
 | Natural-language Q&A over transactions | **Completed** |
-| Tax-relevant transaction tagging | **Planned** |
+| Tax-relevant transaction tagging | **Completed** |
 | Terminal report + JSON output | **Completed** |
 | Local web UI dashboard | **Completed** |
 | Multi-account / multi-bank support | **Planned (post-MVP)** |

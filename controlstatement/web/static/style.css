@@ -449,6 +449,44 @@ body {
 .footer-link { color: var(--indigo-light); text-decoration: none; }
 .footer-link:hover { text-decoration: underline; }
 
+/* ── Budget Panel ────────────────────────────────────────────── */
+.budget-item { margin-bottom: 14px; }
+.budget-info {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 5px; gap: 8px;
+}
+.budget-cat { font-size: 13px; font-weight: 600; }
+.budget-meta { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+.budget-bar-bg { height: 6px; background: rgba(255,255,255,0.06); border-radius: 100px; overflow: hidden; position: relative; }
+.budget-bar-fill {
+  height: 100%; border-radius: 100px;
+  transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
+  min-width: 2px;
+}
+.budget-ok   .budget-bar-fill { background: linear-gradient(90deg, var(--emerald) 0%, #34d399 100%); }
+.budget-warn .budget-bar-fill { background: linear-gradient(90deg, var(--amber) 0%, #fcd34d 100%); }
+.budget-over .budget-bar-fill { background: linear-gradient(90deg, var(--rose) 0%, #fb7185 100%); }
+.budget-status-tag {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.07em;
+  padding: 1px 6px; border-radius: 100px;
+}
+.status-ok   { color: var(--emerald); background: var(--emerald-glow); }
+.status-warn { color: var(--amber);   background: rgba(245,158,11,0.12); }
+.status-over { color: var(--rose);    background: var(--rose-glow); }
+
+/* ── Tax Panel ───────────────────────────────────────────────── */
+.tax-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 9px 12px; border-radius: var(--radius-md);
+  background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.15);
+  margin-bottom: 7px; gap: 8px;
+}
+.tax-item:hover { background: rgba(16,185,129,0.09); }
+.tax-info { flex: 1; min-width: 0; }
+.tax-desc { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tax-cat  { font-size: 11px; color: var(--emerald); margin-top: 2px; }
+.tax-amount { font-size: 13px; font-weight: 700; color: var(--rose); white-space: nowrap; }
+
 /* ── Loading Shimmer ─────────────────────────────────────────── */
 @keyframes shimmer {
   from { background-position: -400px 0; }

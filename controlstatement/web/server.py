@@ -15,6 +15,8 @@ from controlstatement.rules import analyze_transactions, assign_categories
 from controlstatement.report import build_full_report_dict
 from controlstatement.model_client import generate_ai_summary, is_local_model_available
 from controlstatement.qa import answer_question
+from controlstatement.tax_tagger import tag_tax_transactions, export_tax_csv
+from controlstatement.budget import compare_budget_vs_actuals
 
 STATIC_DIR = Path(__file__).parent / "static"
 
@@ -114,7 +116,16 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 if not skip_model and is_local_model_available(self.config, timeout=1.0):
                     model_summary = generate_ai_summary(analysis, transactions, config=self.config)
 
+                # Phase 7: tax tagging and budget
+                tagged = tag_tax_transactions(transactions)
+                budget_report = compare_budget_vs_actuals(
+                    analysis.categories,
+                    currency=self.config.default_currency,
+                )
+
                 report = build_full_report_dict(analysis, verification, transactions, model_summary=model_summary)
+                report["tax_tagged"] = [t.to_dict() for t in tagged]
+                report["budget"] = budget_report.to_dict()
                 # Cache transactions in memory for quick Q&A
                 DashboardHandler.cached_transactions[target_path.name] = transactions
 
@@ -141,6 +152,14 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 if is_local_model_available(self.config, timeout=1.0):
                     model_summary = generate_ai_summary(analysis, transactions, config=self.config)
                 report = build_full_report_dict(analysis, verification, transactions, model_summary=model_summary)
+                # Phase 7: tax tagging and budget
+                tagged = tag_tax_transactions(transactions)
+                budget_report = compare_budget_vs_actuals(
+                    analysis.categories,
+                    currency=self.config.default_currency,
+                )
+                report["tax_tagged"] = [t.to_dict() for t in tagged]
+                report["budget"] = budget_report.to_dict()
                 DashboardHandler.cached_transactions[safe_name] = transactions
                 self._send_json(report)
             except Exception as e:
@@ -166,6 +185,28 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
                 answer = answer_question(question, txns, config=self.config)
                 self._send_json({"question": question, "answer": answer})
+            except Exception as e:
+                self._send_json({"error": str(e)}, status=500)
+
+        elif path == "/api/tax-export":
+            # Export tax-tagged transactions as downloadable CSV
+            try:
+                data = json.loads(raw_body.decode("utf-8")) if raw_body else {}
+                doc_name = data.get("doc_name", "")
+                txns = DashboardHandler.cached_transactions.get(doc_name)
+                if not txns:
+                    default_fixture = Path(__file__).parent.parent.parent / "fixtures" / "sample_statement.csv"
+                    txns, _ = parse_document(default_fixture, currency=self.config.default_currency)
+                    assign_categories(txns)
+                tagged = tag_tax_transactions(txns)
+                csv_str = export_tax_csv(tagged)
+                payload = csv_str.encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "text/csv; charset=utf-8")
+                self.send_header("Content-Disposition", 'attachment; filename="tax_tagged_transactions.csv"')
+                self.send_header("Content-Length", str(len(payload)))
+                self.end_headers()
+                self.wfile.write(payload)
             except Exception as e:
                 self._send_json({"error": str(e)}, status=500)
         else:

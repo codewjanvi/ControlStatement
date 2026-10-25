@@ -88,6 +88,17 @@ def main() -> None:
     serve_parser.add_argument("--host", default="127.0.0.1", help="Host interface to bind (default: 127.0.0.1 strictly)")
     serve_parser.add_argument("--port", type=int, default=8080, help="Local port (default: 8080)")
     serve_parser.add_argument("--open", action="store_true", default=False, help="Automatically open dashboard in browser")
+    # tax subcommand (Phase 7)
+    tax_parser = subparsers.add_parser("tax", help="Tag tax-relevant transactions and export a CSV for review")
+    tax_parser.add_argument("file", help="Path to statement file")
+    tax_parser.add_argument("--currency", default="INR", help="Default currency (default: INR)")
+    tax_parser.add_argument("--export", help="Export tax-tagged CSV to this file path")
+    tax_parser.add_argument("--json", action="store_true", help="Output JSON list of tagged transactions")
+    # budget subcommand (Phase 7)
+    budget_parser = subparsers.add_parser("budget", help="Compare actual spending against monthly category budgets")
+    budget_parser.add_argument("file", help="Path to statement file")
+    budget_parser.add_argument("--currency", default="INR", help="Default currency (default: INR)")
+    budget_parser.add_argument("--json", action="store_true", help="Output structured JSON budget report")
 
     args = parser.parse_args()
 
@@ -236,6 +247,83 @@ def main() -> None:
 
         cfg = get_config()
         run_server(host=args.host, port=args.port, open_browser=args.open, config=cfg)
+
+    elif args.command == "tax":
+        from controlstatement.tax_tagger import tag_tax_transactions, export_tax_csv
+        from controlstatement.rules import assign_categories
+        import json as _json
+
+        file_path = Path(args.file)
+        if not file_path.exists():
+            print(f"Error: File not found: {file_path}", file=sys.stderr)
+            sys.exit(1)
+
+        try:
+            transactions, _ = parse_document(file_path, currency=args.currency)
+            assign_categories(transactions)
+            tagged = tag_tax_transactions(transactions)
+        except Exception as e:
+            print(f"Error during tax tagging: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        if args.json:
+            print(_json.dumps([t.to_dict() for t in tagged], indent=2))
+        elif args.export:
+            export_path = Path(args.export)
+            export_path.parent.mkdir(parents=True, exist_ok=True)
+            csv_content = export_tax_csv(tagged)
+            export_path.write_text(csv_content, encoding="utf-8")
+            print(f"Tax-tagged CSV exported to: {export_path}")
+            print(f"Total tax-relevant transactions: {len(tagged)}")
+        else:
+            print(f"\n[TAX-RELEVANT TRANSACTIONS] — {file_path.name}")
+            print("-" * 70)
+            print(f"  {'Date':<12} {'Description':<36} {'Amount':>12}  Tax Category")
+            print(f"  {'-'*12} {'-'*36} {'-'*12}  {'-'*26}")
+            for t in tagged:
+                print(f"  {t.date:<12} {t.description[:36]:<36} {t.amount:>12.2f}  {t.tax_category}")
+            print("-" * 70)
+            print(f"  Total potentially deductible: {len(tagged)} transactions")
+            print(f"  Tip: Use --export <path.csv> to save for your accountant\n")
+
+    elif args.command == "budget":
+        from controlstatement.budget import compare_budget_vs_actuals
+        from controlstatement.rules import analyze_transactions
+        import json as _json
+
+        file_path = Path(args.file)
+        if not file_path.exists():
+            print(f"Error: File not found: {file_path}", file=sys.stderr)
+            sys.exit(1)
+
+        try:
+            transactions, _ = parse_document(file_path, currency=args.currency)
+            analysis = analyze_transactions(transactions)
+            budget_report = compare_budget_vs_actuals(analysis.categories, currency=args.currency)
+        except Exception as e:
+            print(f"Error during budget analysis: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        if args.json:
+            print(_json.dumps(budget_report.to_dict(), indent=2))
+        else:
+            curr = args.currency
+            print(f"\n[BUDGET VS. ACTUALS REPORT] — {file_path.name}")
+            print("=" * 72)
+            status_icons = {"OK": "✓", "WARN": "!", "OVER": "✗"}
+            print(f"  {'Category':<28} {'Budget':>10} {'Actual':>10} {'Variance':>10}  Status")
+            print(f"  {'-'*28} {'-'*10} {'-'*10} {'-'*10}  {'-'*6}")
+            for b in budget_report.budget_lines:
+                icon = status_icons.get(b.status, "?")
+                bud_str = f"{b.budgeted:>10,.0f}" if b.budgeted > 0 else f"{'(no budget)':>10}"
+                print(f"  {b.category:<28} {bud_str} {b.actual:>10,.0f} {b.variance:>+10,.0f}  [{icon}] {b.status}")
+            print("=" * 72)
+            print(f"  Total Budgeted:  {budget_report.total_budgeted:>10,.0f} {curr}")
+            print(f"  Total Actual:    {budget_report.total_actual:>10,.0f} {curr}")
+            variance_prefix = "+" if budget_report.total_variance >= 0 else ""
+            print(f"  Net Variance:    {variance_prefix}{budget_report.total_variance:>10,.0f} {curr}")
+            print()
+
     else:
         parser.print_help()
 
