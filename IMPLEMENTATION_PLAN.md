@@ -70,7 +70,7 @@ The pipeline is:
 | Trend analysis (MoM, rolling windows) | Planned |
 | Recurring charge / subscription tracker | Completed |
 | Budget vs. actuals comparison | Planned |
-| Natural-language Q&A over transactions | Planned |
+| Natural-language Q&A over transactions | Completed |
 | Tax-relevant transaction tagging | Planned |
 | Terminal report + JSON output | Completed |
 | Local web UI dashboard | Planned |
@@ -376,6 +376,8 @@ Tasks: demo script (`docs/demo.md`) using synthetic fixture data; README final p
 | 2026-10-25 | Phase 3 rule analysis: category keyword matcher, recurring charge detector, multi-factor anomaly detector, cash flow aggregator, terminal report renderer with ASCII bars and JSON export | Verified against CSV and PDF fixtures; 20 unit tests passing | Approved by user |
 | 2026-10-25 | Phase 4 local model spike: Ollama on http://localhost:11434 with model `gemma4:e2b` verified; response time 35.0s (cold load) | Executed POST /api/generate test call | Approved by user ("OK") |
 | 2026-10-25 | Phase 4 local model integration: AppConfig with localhost privacy enforcement, versioned structured prompt template v1.0, Ollama client with graceful degradation, `--model` and `--no-model` flags | Verified end-to-end against sample CSV producing AI summary, spending commentary, and nudges; 25 unit tests passing | Approved by user |
+| 2026-10-25 | Phase 5 natural-language Q&A: guardrailed transaction context prompting, exact citation without hallucination, CLI `ask` subcommand | Tested against sample statement querying Swiggy spend (returned exact 970.00 INR and 2 cited transactions); 29 unit tests passing | Approved by user |
+
 
 
 

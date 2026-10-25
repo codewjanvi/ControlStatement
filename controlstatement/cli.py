@@ -78,6 +78,11 @@ def main() -> None:
     report_parser.add_argument("--model", action="store_true", default=False, help="Enable local AI model summary and nudges")
     report_parser.add_argument("--no-model", action="store_true", default=False, help="Run pure rule-based analysis without calling local LLM")
     report_parser.add_argument("--output", help="Save report to specified JSON file path")
+    # ask subcommand
+    ask_parser = subparsers.add_parser("ask", help="Ask plain-language questions about your transactions")
+    ask_parser.add_argument("question", help="Question about your spending (e.g. 'How much did I spend on dining?')")
+    ask_parser.add_argument("--file", "-f", required=True, help="Path to statement file to query")
+    ask_parser.add_argument("--currency", default="INR", help="Default currency (default: INR)")
 
     args = parser.parse_args()
 
@@ -194,6 +199,31 @@ def main() -> None:
             print(json.dumps(report_dict, indent=2))
         else:
             render_terminal_report(analysis, verification, model_summary=model_summary)
+
+    elif args.command == "ask":
+        from controlstatement.qa import answer_question
+        from controlstatement.rules import assign_categories
+        from controlstatement.config import get_config
+
+        file_path = Path(args.file)
+        if not file_path.exists():
+            print(f"Error: File not found: {file_path}", file=sys.stderr)
+            sys.exit(1)
+
+        try:
+            transactions, _ = parse_document(file_path, currency=args.currency)
+            assign_categories(transactions)
+        except Exception as e:
+            print(f"Error loading document: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        cfg = get_config()
+        print(f"\nQuerying local model '{cfg.local_model_name}' on transactions from {file_path.name}...")
+        print(f"Question: \"{args.question}\"\n")
+        response = answer_question(args.question, transactions, config=cfg)
+        print("Answer:")
+        print(response)
+        print()
     else:
         parser.print_help()
 

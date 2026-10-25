@@ -47,7 +47,7 @@ User uploads documents (PDF / CSV)
 | Trend analysis (MoM, rolling windows) | **Planned** |
 | Recurring charge / subscription tracker | **Completed** |
 | Budget vs. actuals comparison | **Planned** |
-| Natural-language Q&A over transactions | **Planned** |
+| Natural-language Q&A over transactions | **Completed** |
 | Tax-relevant transaction tagging | **Planned** |
 | Terminal report + JSON output | **Completed** |
 | Local web UI dashboard | **Planned** |
@@ -140,6 +140,16 @@ python -m controlstatement report fixtures/sample_statement.csv --json
 
 # Save report directly to file
 python -m controlstatement report fixtures/sample_statement.csv --output report.json
+```
+
+#### 4. Natural-Language Q&A (Phase 5)
+Ask plain-language questions about your spending directly to your local LLM:
+
+```bash
+# Ask specific questions over transaction records
+python -m controlstatement ask "How much did I spend on Swiggy in total?" --file fixtures/sample_statement.csv
+python -m controlstatement ask "What was my highest expense?" --file fixtures/sample_statement.pdf
+python -m controlstatement ask "How much went to utilities and bills?" --file fixtures/sample_statement.csv
 ```
 
 ### Running Tests
