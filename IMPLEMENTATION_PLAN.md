@@ -63,16 +63,16 @@ The pipeline is:
 | Transaction normalization & deduplication | Completed |
 | Statement verification (totals reconciliation) | Completed |
 | Local model integration (Ollama / llama.cpp) | Planned |
-| Spending categorization | Planned |
+| Spending categorization | Completed |
 | Plain-language monthly summary | Planned |
-| Cash flow view (income vs. outflow) | Planned |
-| Anomaly & duplicate detection | Planned |
+| Cash flow view (income vs. outflow) | Completed |
+| Anomaly & duplicate detection | Completed |
 | Trend analysis (MoM, rolling windows) | Planned |
-| Recurring charge / subscription tracker | Planned |
+| Recurring charge / subscription tracker | Completed |
 | Budget vs. actuals comparison | Planned |
 | Natural-language Q&A over transactions | Planned |
 | Tax-relevant transaction tagging | Planned |
-| Terminal report + JSON output | Planned |
+| Terminal report + JSON output | Completed |
 | Local web UI dashboard | Planned |
 | Multi-account / multi-bank support | Planned (post-MVP) |
 | Export to CSV / PDF report | Planned (post-MVP) |
@@ -373,6 +373,8 @@ Tasks: demo script (`docs/demo.md`) using synthetic fixture data; README final p
 | 2026-10-25 | Environment verified: Python 3.14.4 on Windows; Ollama running on localhost:11434 with model `gemma4:e2b` | Ran `python --version` and queried `http://localhost:11434/api/tags` | Approved by user ("okay continue") |
 | 2026-10-25 | Phase 1 architecture: Python 3.14 + pypdf for PDF extraction, CSV parser with multi-format column detection, ISO date normalization, signed decimal amounts, SHA-256 statement_id | Verified pypdf text extraction on minimal PDF | Approved by user |
 | 2026-10-25 | Phase 2 verifier: balance reconciliation, running balance sequence consistency, intra/cross-statement deduplication, PASS/WARN/FAIL reporting | Verified against valid CSV, valid PDF, and tampered CSV fixtures | Approved by user |
+| 2026-10-25 | Phase 3 rule analysis: category keyword matcher, recurring charge detector, multi-factor anomaly detector, cash flow aggregator, terminal report renderer with ASCII bars and JSON export | Verified against CSV and PDF fixtures; 20 unit tests passing | Approved by user |
+
 
 
 

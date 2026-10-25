@@ -8,6 +8,12 @@ from typing import List
 
 from controlstatement.parsers.detector import parse_document
 
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 
 def print_table(transactions: List) -> None:
     """Format and display transactions as a readable terminal table."""
@@ -63,6 +69,14 @@ def main() -> None:
     verify_parser.add_argument("file", help="Path to the statement file to verify")
     verify_parser.add_argument("--json", action="store_true", help="Output raw JSON verification report")
     verify_parser.add_argument("--currency", default="INR", help="Default currency (default: INR)")
+
+    # report subcommand
+    report_parser = subparsers.add_parser("report", help="Generate financial intelligence analysis report")
+    report_parser.add_argument("file", help="Path to the statement file")
+    report_parser.add_argument("--json", action="store_true", help="Output structured JSON report")
+    report_parser.add_argument("--currency", default="INR", help="Default currency (default: INR)")
+    report_parser.add_argument("--no-model", action="store_true", default=False, help="Run pure rule-based analysis without calling local LLM")
+    report_parser.add_argument("--output", help="Save report to specified JSON file path")
 
     args = parser.parse_args()
 
@@ -132,6 +146,42 @@ def main() -> None:
 
         if report.status.value == "FAIL":
             sys.exit(2)
+
+    elif args.command == "report":
+        from controlstatement.verifier import verify_statement
+        from controlstatement.rules import analyze_transactions
+        from controlstatement.report import render_terminal_report, build_full_report_dict
+
+        file_path = Path(args.file)
+        if not file_path.exists():
+            print(f"Error: File not found: {file_path}", file=sys.stderr)
+            sys.exit(1)
+
+        try:
+            transactions, summary = parse_document(file_path, currency=args.currency)
+            verification = verify_statement(transactions, summary)
+            analysis = analyze_transactions(transactions)
+        except Exception as e:
+            print(f"Error generating report: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        model_summary = ""
+        # In Phase 4, if not args.no_model, local LLM will be invoked here.
+        # If no-model is selected or model is not yet configured, model_summary remains empty.
+
+        report_dict = build_full_report_dict(analysis, verification, transactions, model_summary=model_summary)
+
+        if args.output:
+            out_path = Path(args.output)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(out_path, "w", encoding="utf-8") as f:
+                json.dump(report_dict, f, indent=2)
+            print(f"Report saved to: {out_path}")
+
+        if args.json:
+            print(json.dumps(report_dict, indent=2))
+        else:
+            render_terminal_report(analysis, verification, model_summary=model_summary)
     else:
         parser.print_help()
 

@@ -40,16 +40,16 @@ User uploads documents (PDF / CSV)
 | Transaction normalization & deduplication | **Completed** |
 | Statement verification (totals reconciliation) | **Completed** |
 | Local model integration (Ollama / llama.cpp) | **Planned** |
-| Spending categorization | **Planned** |
+| Spending categorization | **Completed** |
 | Plain-language monthly summary | **Planned** |
-| Cash flow view (income vs. outflow) | **Planned** |
-| Anomaly & duplicate detection | **Planned** |
+| Cash flow view (income vs. outflow) | **Completed** |
+| Anomaly & duplicate detection | **Completed** |
 | Trend analysis (MoM, rolling windows) | **Planned** |
-| Recurring charge / subscription tracker | **Planned** |
+| Recurring charge / subscription tracker | **Completed** |
 | Budget vs. actuals comparison | **Planned** |
 | Natural-language Q&A over transactions | **Planned** |
 | Tax-relevant transaction tagging | **Planned** |
-| Terminal report + JSON output | **Planned** |
+| Terminal report + JSON output | **Completed** |
 | Local web UI dashboard | **Planned** |
 | Multi-account / multi-bank support | **Planned (post-MVP)** |
 | Export to CSV / PDF report | **Planned (post-MVP)** |
@@ -122,6 +122,21 @@ python -m controlstatement verify fixtures/tampered_statement.csv
 
 # JSON verification report
 python -m controlstatement verify fixtures/sample_statement.csv --json
+```
+
+#### 3. Financial Intelligence Report (Phase 3)
+Generate comprehensive spending analysis, cash flow summaries, recurring subscription tracking, and anomaly detection:
+
+```bash
+# Formatted terminal report
+python -m controlstatement report fixtures/sample_statement.csv
+python -m controlstatement report fixtures/sample_statement.pdf
+
+# Output structured JSON report
+python -m controlstatement report fixtures/sample_statement.csv --json
+
+# Save report directly to file
+python -m controlstatement report fixtures/sample_statement.csv --output report.json
 ```
 
 ### Running Tests
