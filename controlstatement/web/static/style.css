@@ -1,9 +1,7 @@
 /* ============================================================
    ControlStatement — Premium Dark Dashboard
-   All fonts loaded from CSS @import (no CDN at runtime)
+   100% Offline System Font Stack — Zero External Web Requests
    ============================================================ */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 /* ── Design Tokens ──────────────────────────────────────────── */
 :root {
@@ -36,7 +34,7 @@
 
   --shadow-card:    0 4px 32px rgba(0,0,0,0.45);
   --shadow-glow:    0 0 24px var(--indigo-glow);
-  --font:           'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font:           -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 /* ── Reset ──────────────────────────────────────────────────── */

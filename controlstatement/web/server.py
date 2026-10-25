@@ -68,6 +68,10 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self._send_file(STATIC_DIR / "style.css")
         elif path == "/app.js":
             self._send_file(STATIC_DIR / "app.js")
+        elif path == "/overview.css":
+            self._send_file(STATIC_DIR / "overview.css")
+        elif path == "/overview.js":
+            self._send_file(STATIC_DIR / "overview.js")
         elif path == "/api/status":
             model_online = is_local_model_available(self.config, timeout=1.0)
             self._send_json({
@@ -84,6 +88,57 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     if f.suffix.lower() in (".csv", ".pdf"):
                         files.append({"name": f.name, "path": str(f.resolve())})
             self._send_json({"fixtures": files})
+        elif path == "/api/overview":
+            from collections import defaultdict
+            fixtures_dir = Path(__file__).parent.parent.parent / "fixtures"
+            uploads_dir = Path(__file__).parent.parent.parent / "data" / "uploads"
+
+            all_files = []
+            seen_names = set()
+            for d in (uploads_dir, fixtures_dir):
+                if d.is_dir():
+                    for f in sorted(d.glob("*.*")):
+                        if f.suffix.lower() in (".csv", ".pdf") and f.name not in seen_names:
+                            seen_names.add(f.name)
+                            all_files.append(f)
+
+            file_statuses = []
+            monthly_income = defaultdict(float)
+            monthly_spending = defaultdict(float)
+
+            for file_path in all_files:
+                try:
+                    txns, summary = parse_document(file_path, currency=self.config.default_currency)
+                    ver = verify_statement(txns, summary)
+                    file_statuses.append({
+                        "name": file_path.name,
+                        "status": ver.status.value,
+                    })
+                    for t in txns:
+                        date_str = t.date or ""
+                        parts = date_str.replace("/", "-").split("-")
+                        if len(parts) == 3:
+                            month_key = f"{parts[0]}-{parts[1]}" if len(parts[0]) == 4 else f"{parts[2]}-{parts[1]}"
+                        else:
+                            continue
+                        if t.amount > 0:
+                            monthly_income[month_key] += t.amount
+                        elif t.amount < 0:
+                            monthly_spending[month_key] += abs(t.amount)
+                except Exception:
+                    file_statuses.append({
+                        "name": file_path.name,
+                        "status": "FAIL",
+                    })
+
+            all_months = sorted(set(list(monthly_income.keys()) + list(monthly_spending.keys())))
+            self._send_json({
+                "currency": self.config.default_currency,
+                "files": file_statuses,
+                "months": all_months,
+                "income": [round(monthly_income[m], 2) for m in all_months],
+                "spending": [round(monthly_spending[m], 2) for m in all_months],
+            })
         else:
             self.send_error(404, "Not Found")
 

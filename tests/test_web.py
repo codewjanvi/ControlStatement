@@ -133,6 +133,28 @@ class TestWebServer(unittest.TestCase):
             data = json.loads(resp.read().decode("utf-8"))
             self.assertEqual(data.get("model_summary"), "Fast AI test summary.")
 
+    def test_api_overview(self):
+        req = urllib.request.Request(f"{self.base_url}/api/overview")
+        with urllib.request.urlopen(req, timeout=5.0) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+
+            self.assertIn("currency", data)
+            self.assertIn("files", data)
+            self.assertIn("months", data)
+            self.assertIn("income", data)
+            self.assertIn("spending", data)
+
+            files_map = {f["name"]: f["status"] for f in data["files"]}
+            self.assertIn("sample_statement.csv", files_map)
+            self.assertEqual(files_map["sample_statement.csv"], "PASS")
+
+            self.assertIn("tampered_statement.csv", files_map)
+            self.assertEqual(files_map["tampered_statement.csv"], "FAIL")
+
+            self.assertEqual(len(data["months"]), len(data["income"]))
+            self.assertEqual(len(data["months"]), len(data["spending"]))
+
 
 if __name__ == "__main__":
     unittest.main()
