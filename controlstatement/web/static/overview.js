@@ -28,10 +28,7 @@
         <div class="co-container">
           <div class="co-header">
             <div class="co-title-group">
-              <svg class="co-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <rect x="3" y="3" width="18" height="18" rx="2"/>
-                <path d="M3 9h18M9 21V9"/>
-              </svg>
+              <span class="co-bento-badge">INK ORBIT BENTO</span>
               <h2 class="co-title">Control Overview</h2>
               <span class="co-subtitle">Local Verification Pipeline &amp; Cash Flow</span>
             </div>
@@ -129,11 +126,17 @@
             }).join("")}
           </div>
 
-          <!-- Middle: Verifier Chip -->
+          <!-- Middle: Verifier Chip with Live Flow Packets -->
           <div class="co-flow-mid">
             <svg class="co-flow-line-svg" viewBox="0 0 200 48" fill="none">
-              <path d="M 10 24 L 80 24" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.3"/>
-              <path d="M 120 24 L 190 24" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.3"/>
+              <path d="M 10 24 L 75 24" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.3"/>
+              <circle class="co-flow-packet-svg" r="3.5" fill="var(--co-blue)">
+                <animateMotion repeatCount="indefinite" dur="1.8s" path="M 10 24 L 75 24"/>
+              </circle>
+              <path d="M 125 24 L 190 24" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.3"/>
+              <circle class="co-flow-packet-svg" r="3.5" fill="var(--co-blue)">
+                <animateMotion repeatCount="indefinite" dur="1.8s" begin="0.9s" path="M 125 24 L 190 24"/>
+              </circle>
             </svg>
             <div class="co-verifier-chip">
               <svg class="co-chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

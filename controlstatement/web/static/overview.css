@@ -85,12 +85,19 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
-.co-title-icon {
-  width: 22px;
-  height: 22px;
+.co-bento-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   color: var(--co-blue);
+  background: var(--co-chip-bg);
+  border: 1px solid var(--co-chip-border);
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
 }
 
 .co-title {
@@ -341,12 +348,13 @@
   box-shadow: 0 0 6px var(--co-blue);
 }
 
-/* Report Stack */
+/* Report Stack (Ink Orbit 3D Layered Look) */
 .co-report-stack {
   position: relative;
-  width: 220px;
+  width: 210px;
   height: 110px;
   flex-shrink: 0;
+  perspective: 800px;
 }
 
 .co-sheet {
@@ -356,12 +364,12 @@
   background: var(--co-sheet-bg);
   border: 1px solid var(--co-sheet-border);
   border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  transition: transform 0.25s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease;
 }
 
-.co-sheet-3 { top: 8px; left: 8px; opacity: 0.4; }
-.co-sheet-2 { top: 4px; left: 4px; opacity: 0.7; }
+.co-sheet-3 { top: 8px; left: 8px; opacity: 0.4; transform: rotate(2deg); }
+.co-sheet-2 { top: 4px; left: 4px; opacity: 0.7; transform: rotate(-1deg); }
 .co-sheet-top {
   top: 0;
   left: 0;
@@ -369,10 +377,16 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  transform: translateZ(8px);
 }
 
-.co-card:hover .co-sheet-3 { transform: translate(4px, 4px); }
-.co-card:hover .co-sheet-2 { transform: translate(2px, 2px); }
+.co-card:hover .co-sheet-3 { transform: translate(5px, 5px) rotate(4deg); }
+.co-card:hover .co-sheet-2 { transform: translate(2px, 2px) rotate(-2deg); }
+.co-card:hover .co-sheet-top { transform: translateZ(14px); box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35); }
+
+.co-flow-packet-svg {
+  filter: drop-shadow(0 0 4px var(--co-blue));
+}
 
 .co-sheet-title {
   font-size: 12px;
