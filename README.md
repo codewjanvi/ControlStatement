@@ -39,9 +39,9 @@ User uploads documents (PDF / CSV)
 | Document ingestion (PDF, CSV) | **Completed** |
 | Transaction normalization & deduplication | **Completed** |
 | Statement verification (totals reconciliation) | **Completed** |
-| Local model integration (Ollama / llama.cpp) | **Planned** |
+| Local model integration (Ollama / llama.cpp) | **Completed** |
 | Spending categorization | **Completed** |
-| Plain-language monthly summary | **Planned** |
+| Plain-language monthly summary | **Completed** |
 | Cash flow view (income vs. outflow) | **Completed** |
 | Anomaly & duplicate detection | **Completed** |
 | Trend analysis (MoM, rolling windows) | **Planned** |
@@ -128,11 +128,14 @@ python -m controlstatement verify fixtures/sample_statement.csv --json
 Generate comprehensive spending analysis, cash flow summaries, recurring subscription tracking, and anomaly detection:
 
 ```bash
-# Formatted terminal report
-python -m controlstatement report fixtures/sample_statement.csv
-python -m controlstatement report fixtures/sample_statement.pdf
+# Full report with local AI monthly summary and nudges (Ollama)
+python -m controlstatement report fixtures/sample_statement.csv --model
+python -m controlstatement report fixtures/sample_statement.pdf --model
 
-# Output structured JSON report
+# Fast rule-based analysis without invoking local LLM
+python -m controlstatement report fixtures/sample_statement.csv --no-model
+
+# Output structured JSON report (includes model_summary)
 python -m controlstatement report fixtures/sample_statement.csv --json
 
 # Save report directly to file

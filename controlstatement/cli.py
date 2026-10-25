@@ -75,6 +75,7 @@ def main() -> None:
     report_parser.add_argument("file", help="Path to the statement file")
     report_parser.add_argument("--json", action="store_true", help="Output structured JSON report")
     report_parser.add_argument("--currency", default="INR", help="Default currency (default: INR)")
+    report_parser.add_argument("--model", action="store_true", default=False, help="Enable local AI model summary and nudges")
     report_parser.add_argument("--no-model", action="store_true", default=False, help="Run pure rule-based analysis without calling local LLM")
     report_parser.add_argument("--output", help="Save report to specified JSON file path")
 
@@ -166,8 +167,19 @@ def main() -> None:
             sys.exit(1)
 
         model_summary = ""
-        # In Phase 4, if not args.no_model, local LLM will be invoked here.
-        # If no-model is selected or model is not yet configured, model_summary remains empty.
+        from controlstatement.model_client import generate_ai_summary, is_local_model_available
+        from controlstatement.config import get_config
+
+        cfg = get_config()
+        # If --no-model is passed, skip. If --model is passed, run. If neither, auto-run if model is running.
+        should_run_model = args.model or (not args.no_model and is_local_model_available(cfg))
+        if args.no_model:
+            should_run_model = False
+
+        if should_run_model:
+            if not args.json:
+                print(f"Generating AI insights via local model '{cfg.local_model_name}' on localhost...")
+            model_summary = generate_ai_summary(analysis, transactions, config=cfg)
 
         report_dict = build_full_report_dict(analysis, verification, transactions, model_summary=model_summary)
 

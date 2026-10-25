@@ -62,9 +62,9 @@ The pipeline is:
 | Document ingestion (PDF, CSV) | Completed |
 | Transaction normalization & deduplication | Completed |
 | Statement verification (totals reconciliation) | Completed |
-| Local model integration (Ollama / llama.cpp) | Planned |
+| Local model integration (Ollama / llama.cpp) | Completed |
 | Spending categorization | Completed |
-| Plain-language monthly summary | Planned |
+| Plain-language monthly summary | Completed |
 | Cash flow view (income vs. outflow) | Completed |
 | Anomaly & duplicate detection | Completed |
 | Trend analysis (MoM, rolling windows) | Planned |
@@ -374,7 +374,9 @@ Tasks: demo script (`docs/demo.md`) using synthetic fixture data; README final p
 | 2026-10-25 | Phase 1 architecture: Python 3.14 + pypdf for PDF extraction, CSV parser with multi-format column detection, ISO date normalization, signed decimal amounts, SHA-256 statement_id | Verified pypdf text extraction on minimal PDF | Approved by user |
 | 2026-10-25 | Phase 2 verifier: balance reconciliation, running balance sequence consistency, intra/cross-statement deduplication, PASS/WARN/FAIL reporting | Verified against valid CSV, valid PDF, and tampered CSV fixtures | Approved by user |
 | 2026-10-25 | Phase 3 rule analysis: category keyword matcher, recurring charge detector, multi-factor anomaly detector, cash flow aggregator, terminal report renderer with ASCII bars and JSON export | Verified against CSV and PDF fixtures; 20 unit tests passing | Approved by user |
-| 2026-10-25 | Phase 4 local model spike: Ollama on http://localhost:11434 with model `gemma4:e2b` verified; response time 35.0s (cold load) | Executed POST /api/generate test call | Pending user confirmation on Phase 3 report |
+| 2026-10-25 | Phase 4 local model spike: Ollama on http://localhost:11434 with model `gemma4:e2b` verified; response time 35.0s (cold load) | Executed POST /api/generate test call | Approved by user ("OK") |
+| 2026-10-25 | Phase 4 local model integration: AppConfig with localhost privacy enforcement, versioned structured prompt template v1.0, Ollama client with graceful degradation, `--model` and `--no-model` flags | Verified end-to-end against sample CSV producing AI summary, spending commentary, and nudges; 25 unit tests passing | Approved by user |
+
 
 
 
